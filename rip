@@ -1,0 +1,300 @@
+#####################################
+dynamic routing protocol
+#####################################
+1-IGP
+	1.1-distance vector: RIPv1,RIPv2
+	1.2-link state:      OSPF
+	1.3-hybrid:	     EIGRP
+2-EGP
+	2.1-BGP
+
+#####################################
+RIP
+#####################################
+how to works:
+$each router regardless of its routing protocol, will add its directly connected subnets to its routing protocol.
+$each router, advertises its ROUTING TABLE in form of ROUTING UPDATE on its EVERY PORTS, these records are the combination of directly connected records and the routes that it has learnt.
+$routers will listen to ROUTING UPDATES recieving from their neighbors to learn all paths.
+$routing updates have only NETWORK ID (rip v2 also has SUBNET MASK) and METRIC with theme selves.(it does not have the interface with it, and also add i to the metric it has recieved)
+$destination address of the routing updates are even Multicast (RIP v2) or Broadcast (RIP v1)
+$if a router learns more the one path to a network, it will add the LOWEST METRIC in itd routing table.
+$these routing updates will be advertise periodically (in RIP every 30 sec)
+$each path that has learnt by a routing update recieves on a router port can be assumed the receiving interface as the outgoing interface.
+$if a router has received a routing update with the source ip address of w.x.y.z , it means that the next hop address will be w.x.y.x
+$each router expects that a learnt path will be refresh in every hello time (30sec) if it does not refresh for the dead time (in RIP 180sec) it will be erased from the routing table.
+
+#####################################
+routing poisoning
+#####################################
+problem: long fail detection time
+	maximum metric in a RIP network is 15. it means the distance oftwo network should not be more that 15 networks.so the time of a network  fail detection in RIP is 45 min (15*180sec)
+
+solution: routing poisoning
+	if a subnet fails normally it will not be advertised but when route poisoning is enabled instead of not advertising the eoute.the eoute will be advertised with the metric of 16, so network fail detection will be 7,5 min (15*30sec).
+
+#####################################
+split horizon
+#####################################
+problem: count to infinity on a single link
+
+solution: split horizon (as a same feature in all the routing protocols)
+	do not teach a route to a router whom you have been tought the same route!
+
+NOTE: split horizon do not count in the poisoned routes, it means when a route is poisoned it will be advertised toevery router include the router which has advertised the poisoned route.
+
+#####################################
+hold down timer
+#####################################
+problem: countcount to infinity on a more than one link.
+
+solution: hold downtimer
+	if a router receives a route with metric=16 it will not belive any other update from any other router until hold down timer passes(180sec), so it makes sure every one has understood that the route is no more valid.
+
+#####################################
+triggered (flash) updates
+#####################################
+problem: failed detection is still long (7.5min)
+
+sotution: triggered (flash) updates
+	when a router notices that a route is failed, instead of waiting for the periodic time(30sec), instantly poisons the route and advertises it.so fail detection will be 0 sec.
+
+#####################################
+convergence time
+#####################################
+in the worse circumstances, failed detection will be 0sec. adding a redundant pass in case of existence will be 7.5 min.
+in the real world (e.g. RIP) think of something like 4 min.
+
+#####################################
+RIP v1
+#####################################
+RIPv1 is not recommended in the large scales:
+$long convergence time
+$not sending subnet mask (so this protocol is a class full protocol)
+$destination ip address is a BROADCAST in RIPv1.
+
+#####################################
+RIP v2
+#####################################
+$subnet mask will bw advertised in the routing updates in RIPv2 (so this protocol is a class less peotocol)
+$destination ip address is a MULTICAST in RIPv2 (224.0.0.9)
+
+
+	###############################################################################
+	#             RIPv1			#		RIBv2		      #
+	###############################################################################
+	# distance vector			# distance vector		      #
+        # maximum houp count 15			# maximum houp count 15		      #
+        # classfull				# classless			      #
+        # broadcast based			# multicast based 224.0.0.9	      #
+        # no support for VLSM			# support for VLSM		      #
+        # no authntication			# allows for MD5 authntication	      #
+        # no support for discontiguous networks # support for discontiguous networks  #
+	# #############################################################################
+
+
+#####################################
+VLSM / SLSM
+#####################################
+VLSM (variable length subnet mask)
+SLSM (single length subnet mask)
+if there are diffrent subnets of a single class network, and the subnet masks vary; this is called VLSM and if not its SLSM.
+
+EXAMPLE:
+		VLSM
+	        ##############################
+                # subnet1 # 10.10.10.0 # /24 #
+                ##############################
+                # subnet2 # 10.10.11.0 # /24 #
+                ##############################
+                # subnet3 # 10.01.12.0 # /24 #
+                ##############################
+                # subnet4 # 10.10.13.0 # /30 #
+                ##############################
+
+		SLMS
+                ##############################
+                # subnet1 # 10.10.10.0 # /24 #
+                ##############################
+                # subnet2 # 10.10.11.0 # /24 #
+                ##############################
+                # subnet3 # 10.01.12.0 # /24 #
+                ##############################
+                # subnet4 # 10.10.13.0 # /24 #
+                ##############################
+
+VLSM is used to conserve IP addresses.
+
+Attention:
+in a VLSM network if the routing protocol does not send the subnet mask with its updates, routing will not be done correctly in that network.
+
+NOTE: routing protocols that does not send the subnet mask with its updates are called CLASS FULL routing protocols.(e.g. RIPv1 & IGRP) so in a VLSM network do not use IGRP or RIPv1
+
+#####################################
+auto summarization
+#####################################
+auto summariy, summarizes the routes to class full subnet and advertises it in the boundaries.
+
+Boundary: the point separating two diffrent class full networks.
+
+NOTE:
+$auto summerization in the class full routing protocoles (such as RIPv1 & IGRP) is enable by default and its not possible to disable it.
+$auto summerization in the RIPv2 & EIGRP is enable by default and it is recommended to disable it.
+$auto summarization in the OSPF in not enable by default/
+
+#####################################
+Discontinuous network
+#####################################
+in a discontinuous network,diffrent subnets of a single network are place in diffrent sides of a boundary.
+in a VLSM network, while using a class full routing protocol, because of the auto summarization, routing will not be done correctly in that network.
+
+#####################################
+RIP configuration
+#####################################
+$enabling RIP on the router.
+$enabling Active interfaces in the routing protocol.
+
+Active interfaces:
+$routing updates should be sent on these interfaces
+$receiving routing updates should be processed on these interfaces
+$Network ID of that interface will bw advertised in the routing updates.
+
+	r1(config)#router rip
+	r1(config-router)#version 2
+	r1(config-router)#no auto-summery
+	r1(config-router)#network 192.168.1.0 (classfull)
+	r1(config-router)#network 192.168.2.0 (classfull)
+	r1#show ip route
+	r1#show ip protocol
+
+#####################################
+load balancing
+#####################################
+if a router receives more that one route to a network with equal metrics, it will add the eoutes into its routing table according to the "Maximum-path" parameter.
+	r1(config)#router rip
+	r1(config-router)#maximum-path {1 to 16}
+
+#####################################
+Administrative distance(AD)
+#####################################
+if a router receives more that one route to a network though different routing protocols, which one should be placed into its routing table?
+because the term "Metric" has different meanings in various routing protocols, metric can not be a decision maker parameter. 
+Meteic:
+	RIP:   number ofrouter in the path
+	OSPF:  total path bandwidth
+	EIGRP: lowes bandwidth of path + delay
+
+administrative distance is a parameter to compare diffrent routing protocols.
+
+reliable routing protocols (lower AD) = will be placed in the routing table
+
+Reliablity:
+directly connected (C) > static (S) > EIGRP > OSPF > RIP
+AD
+	0	>	1	>	90 >	110	>	120
+$EGP is more reliable than IGP.
+$static is more reliable than dynamic.
+$weaithy metric in dynamic routing protocols are more reliable.
+
+		############################################
+		# routing source # administrative distance #
+		############################################
+		# connected	 # 		0	   #
+		# static	 #		1	   #
+		# EIGRP summary	 #		5	   #
+		# External BGP	 #		20	   #
+		# internal EIGRP # 		90	   #
+		# IGRP		 #		100	   #
+		# OSPF		 #		110	   #
+		# IS-IS		 #		115	   #
+		# RIP		 #		120	   #
+		# External ERGRP #		1700	   #
+		# Internal BGP	 #		200	   #
+		############################################
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

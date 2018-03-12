@@ -1,0 +1,39 @@
+#####################################
+Access ports
+#####################################
+& passes the trafic of one vlan
+& its the member of a singe vlan
+& access mode ports must have just a vlan
+
+#####################################
+Trunk ports
+#####################################
+& may passes all the vlan traffics
+& it means if a frame enters a trunk port, switch should stick a tag on it that identifies the vlan number on the frame.
+
+#####################################
+Trunk protocols
+#####################################
+1.802.1q
+2.ISL: is going to be expired someday soon and just for cisco devices
+
+NOTE: you must set similar trunk protocol encapsulation in 2 ports.
+
+#####################################
+Native vlan
+#####################################
+native vlan is only supported in 802.1q.
+devices on a trunk port which are not able to undrestand frame tagging encapsulation should be assign to Native VLAN.
+Native vlan should be the same in two ends of a trunk link.
+
+#####################################
+configuration
+#####################################
+	sw(config)#interface fastethernet 0/11
+	sw(conf-if)#switchport mode trunk
+	sw(conf-if)#switchport trunk encapsulation {802.1q|isl}
+	sw(conf-if)#switchport trunk allow vlan 2.3
+	sw(conf-if)#switchport trunk allow vlan {remove|add} 4
+	sw(conf-if)#switchport trunk native vlan 3
+	sw#show vlan brief
+	sh#show interfaces trunk

@@ -1,0 +1,39 @@
+#####################################
+dynamic trunking protocol
+#####################################
+interfaces modes:
+
+1.Access Mode: DTP disable and the port is an access
+2.Trunk mode: port os a trunk but DTP is enable and propose to the other side.
+3.Dynamic Auto mode: wait for the proposal, DTP is enable.
+4.Dynamic Desirable mode: propose to the other side, if the other side is not an access, it will accept getting trunk, DTP is enable.
+
+DTP ports negotiate with the other side of the link:
+1.to deside making the port a trunk or an access.
+2.and if the link is a trunk, it negotiates on the encapsulation protocol.(first goes for 802.1q and then for the isl).
+
+		###################################################################################
+                #                 #   Access  #     trunk      # dynamic auto # dynamic desirable #
+                ###################################################################################
+                #       Access    #  access   #     access     #   access     #      access       #
+                ###################################################################################
+                #       trunk     #  access   #     trunk      #   trunk      #      trunk        #
+                ###################################################################################
+                #  dynamic auto   #  access   #     trunk      #   access     #      trunk        #
+                ###################################################################################
+                #dynamic desirable#  access   #     trunk      #   trunk      #      trunk        #
+                ###################################################################################
+
+#####################################
+DTP configuration
+#####################################
+	sw(conf-if)#switchport mode dynamic {desireble|auto}
+	sw#show interface fastethernet 0/0 switchport
+	sw#show interface fastethernet 0/0 trunk
+	sw#show intwrfaces trunk
+
+Disable DTP:
+	sw(conf-if)#switchport mode trunk
+	sw(conf-if)#switchport trunk no negotiate
+or
+	sw(conf-if)#switchport mode access

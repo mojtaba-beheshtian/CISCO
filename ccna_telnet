@@ -1,0 +1,132 @@
+#################################
+change host name:
+#################################
+	router(config)#hostname mojtaba
+
+#################################
+secure a line (in user mode)
+#################################
+	router(conf)#line vty 0 15 
+	router(conf-line)#password test
+	router(conf-line)#login
+or
+	router(conf)#username ali password ali
+	router(conf)#line vty 0 15
+	router(conf-line)#login local	
+
+#################################
+secure a line (in privilage mode)
+#################################
+	router(conf)#enable password ali
+or
+	router(conf)#enable secret ali (this is secure)
+
+#################################
+secure all passwords
+#################################
+	router(conf)#dervice password-encryption
+
+#################################
+enable telnet
+#################################
+        router(conf)#line vty 0 15
+        router(conf-line)#password test
+        router(conf-line)#login
+or
+        router(conf)#username ali password ali
+        router(conf)#line vty 0 15
+        router(conf-line)#login local
+
+and 
+        router(conf)#enable password ali
+or
+        router(conf)#enable secret ali (this is secure)
+
+#################################
+enable ssh
+#################################
+        router(conf)#line vty 0 15
+        router(conf-line)#password test
+        router(conf-line)#login
+	router(conf-line)#transport input ssh (or all)
+or
+        router(conf)#username ali password ali
+        router(conf)#line vty 0 15
+        router(conf-line)#login local
+        router(conf-line)#transport input ssh (or all)
+
+and
+        router(conf)#enable password ali
+or
+        router(conf)#enable secret ali (this is secure)
+and
+	router(config)#hostname mojtaba
+	router(conf)#ip domain-name mojtaba.com
+	router(config)#crypto key generate rsa(generate public key)
+	
+
+################################
+RAM
+################################
+%current working directory example: Arp cache.routing tables. ...
+%show running-config
+%flashes while reboot
+
+################################
+ROM
+################################
+%little OS named Boot strap(or RX boot)
+%it first loads and then calls for the IOS
+
+################################
+FLASH
+################################
+%IOS in placed here.
+%thik of a H.D.D
+%while booting, IOS decompresses and is places in RAM.
+
+################################
+NVRAM
+################################
+%none volatile RAM
+%stable while reboot
+%save configuration is placed here.
+%show startup-config
+
+################################
+Booting a device
+################################
+%POST (power on self test)
+%RX boot(ROM)
+%IOS (FLASH)
+%configuration file (NVRAM)
+
+################################
+SAVE configuration
+################################
+	router#copy running-config startup-config
+	router#wr (write memory)
+
+################################
+Backup of current configuration
+################################
+	router#copy running-config ftp	
+	ip ? (ip ftp server)
+	file name ?
+
+################################
+Restore saved configuration
+################################
+        router#copy ftp running-config
+        ip ? (ip ftp server)
+        file name ?
+
+################################
+Backup of IOS
+################################
+        router#copy flash ftp
+        ip ? (ip ftp server)
+        file name ?
+
+
+

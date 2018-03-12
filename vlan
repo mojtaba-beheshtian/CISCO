@@ -1,0 +1,27 @@
+#################################
+vlan
+#################################
+$switches breaks callision domains up while routers breaks broudcast domains up
+$switches do not break broadcast domains by default
+$each vlan is a single broadcast domain
+$vlan is a logical way of grouping clients and resources connected to a switch ports. 
+$its a way of breaking a large broadcast domain up in a layer 2 switching network.
+$ 1 vlan= 1 virtual switch= 1 switch with its own mac table= 1 broadcast domain
+$we may have 4096 vlans
+	1-1005 (normal vlan)
+	1005-4096 (extended vlan)
+
+what we are going to do is:
+1.make diffrent vlans in all switches
+2.each ports vlan membership
+
+NOTE: vlan1=administrative vlan
+
+	sw(conf)#vlan2
+	sw(conf-vlan)#name vlan002
+	sw(conf)#interface fastethernet 0/10
+	sw(conf-if)#switchport mode access
+	sw(conf-if)#switchport access vlan 2
+	sw#show vlan brief
+	sh#show mac-address-table vlan 2
+

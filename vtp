@@ -1,0 +1,71 @@
+#####################################
+vlan trunking protocol
+#####################################
+%minimize administration tasks(add,rename,delete vlans on switches)
+%vlan management on one switch and negotiate with others.
+
+#####################################
+vtp modes
+#####################################
+1-vtp server
+2-vtp client
+3-vtp transparent
+
+#####################################
+vtp server
+#####################################
+%vlan management (add,remove,delete)
+%makes vtp advertisements and forward them on all active trunk ports(every 5 minutes and whenever a change occurs)
+
+vtp advertisments:
+%vtp domain
+%vlan number
+%vlan name
+%vtp version
+%vtp revision number
+%vtp password
+%....
+NOTE: vtp server are vtp clients too (redundancy)
+NOTE: switch ignores advertisments that have a diffrent vtp domain name or an earlier configuration revision number.
+
+#####################################
+vtp client
+#####################################
+%no access to modify vlans.
+%they receive, process and forward (on trunk interfaces) 
+%vtp advertisments.
+
+#####################################
+vtp transparent
+#####################################
+%independent switches that can modify local vlans.
+%they just forward(on trunk interfaces) vtp advertisments with on process.
+
+#####################################
+vtp versions
+#####################################
+%vtp v1: vtp transparent forward vtp advertisments only is the vtp domain name is the same.
+%vtp v2: vtp transparent forward vtp advertisments with no consideration.
+%vtp v3: has not been introduced yet.
+
+#####################################
+vtp cosideration
+#####################################
+%at lease one vtp server must exist.
+%linksbetween switches must be trunk.
+%trunk links should have a sane encapsulation.
+%vtp domain should be the same on all the switches.
+%vtp password (if exists) should be the same on all the switches
+%vto version is not important to be the same.
+
+#####################################
+vtp configuration
+#####################################
+	sw(config)#vtp mode {server|client|transparent}
+	sw(config)#vtp domain mojtaba.com
+	sw(config)#vtp password ali (mandatory)
+	sw(config)#vtp version 2 (optional, by the way the default version is version2)
+	sw#show vtp statues
+	sw#show vtp counters
+
+
