@@ -1,0 +1,51 @@
+#################################
+port security
+#################################
+$who can access a switch port?
+$how many pcs can connect to one port?
+$if a something happens that is not allowed,shat should the switch do?
+
+1.port security is only allowed on the access ports, so make sure the port is an access port:
+	sw(conf)#interface fastethernet 0/1
+	sw(conf-if)#switchport mode access
+
+2.enable port security:
+	sw(conf-if)#switchport port-security
+
+3.configure allowed mac addresses:
+        sw(conf-if)#switchport port-security mac-address H.H.H
+or
+	sw(conf-if)#switchport port-security mac-address stick (learn macc from firs login and max =1 by default)
+
+4.configure maximum mac addresses
+        sw(conf-if)#switchport port-security maximum 2 (max=1 by default)
+
+NOTE:interface range configuration:
+        sw(conf)#interface range fastethernet 0/1-8 , fastethernet 0/24
+
+#################################
+violation
+#################################
+        sw(conf-if)#switchport port-security violation {restrict | protect | shutdown}
+
+	 	#######################################################
+                # 	   # disable port # discard ports # send log  #
+                #######################################################
+                # shutdown #   YES     #     YES        #     yes     #
+                #######################################################
+                # restrict #   no      #     YES        #     yes     #
+                #######################################################
+                # protect  #   no      #     YES        #     no      #
+                #######################################################
+                
+#################################
+troubleshooting security
+################################# 
+	sw#show port-security
+	sw#show port-security address
+	sw#show port-security interface fastethernet 0/1
+	sw#show interface status
+	sw#show interface status err-disabled
+	sw#show mac-address-table
+	sw(conf)#mac-address-table agine-time 300
+

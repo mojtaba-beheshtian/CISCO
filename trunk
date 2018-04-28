@@ -32,8 +32,14 @@ configuration
 	sw(config)#interface fastethernet 0/11
 	sw(conf-if)#switchport mode trunk
 	sw(conf-if)#switchport trunk encapsulation {802.1q|isl}
-	sw(conf-if)#switchport trunk allow vlan 2.3
-	sw(conf-if)#switchport trunk allow vlan {remove|add} 4
-	sw(conf-if)#switchport trunk native vlan 3
+	sw(conf-if)#switchport trunk allow vlan 2,3	 # just vlan 2,3 
+	sw(conf-if)#switchport trunk allow vlan remove 4 # remove vlan 4 from other vlans
+	sw(conf-if)#switchport trunk allow vlan add 4	 # add vlan 4 from other vlans
+	sw(conf-if)#switchport trunk allow vlan all	 # all of vlans access
+	sw(conf-if)#switchport trunk allow vlan exept 4  # all of vlans access exept vlan 4
+	sw(conf-if)#switchport trunk allow vlan none	 # all of vlans cant access  
+	sw(conf-if)#switchport trunk native vlan 3  	 # change native to vlan 3
 	sw#show vlan brief
-	sh#show interfaces trunk
+	sw#show interface fastethernet 0/0 trunk
+	sh#show interface trunk
+

@@ -1,8 +1,11 @@
 #####################################
 vlan trunking protocol
 #####################################
-%minimize administration tasks(add,rename,delete vlans on switches)
-%vlan management on one switch and negotiate with others.
+% minimize administration tasks(add,rename,delete vlans on switches)
+% vlan management on one switch and negotiate with others.
+% vtp is a layer 2 protocol
+% vtp forward all vlans between just Trunk pors with Multicast address (0100:0ccc:cccc).
+% vtp just advertisment all vlns between switches and you must set ports to vlans manually.
 
 #####################################
 vtp modes
@@ -18,22 +21,24 @@ vtp server
 %makes vtp advertisements and forward them on all active trunk ports(every 5 minutes and whenever a change occurs)
 
 vtp advertisments:
-%vtp domain
-%vlan number
-%vlan name
-%vtp version
-%vtp revision number
-%vtp password
-%....
+% vtp domain
+% vlan number
+% vlan name
+% vtp version
+% vtp revision number # it just the number of changes  
+% vtp password
+% ....
+
 NOTE: vtp server are vtp clients too (redundancy)
 NOTE: switch ignores advertisments that have a diffrent vtp domain name or an earlier configuration revision number.
 
 #####################################
 vtp client
 #####################################
-%no access to modify vlans.
-%they receive, process and forward (on trunk interfaces) 
-%vtp advertisments.
+% no access to modify vlans.
+% they receive, process and forward (on trunk interfaces) 
+% vtp advertisments.
+% switches save vlans in vlan.dat in flash memory and dont save in nvram memory.
 
 #####################################
 vtp transparent
@@ -52,11 +57,49 @@ vtp versions
 vtp cosideration
 #####################################
 %at lease one vtp server must exist.
-%linksbetween switches must be trunk.
-%trunk links should have a sane encapsulation.
+%links between switches must be trunk.
+%trunk links should have a same encapsulation.
 %vtp domain should be the same on all the switches.
 %vtp password (if exists) should be the same on all the switches
-%vto version is not important to be the same.
+%vtp version is not important to be the same.
+
+#####################################
+VTP Messages
+#####################################
+VTP packets are sent in either Inter-Switch Link (ISL) frames or in IEEE 802.1Q (dot1q) frames. These packets are sent to the destination MAC address 01-00-0C-CC-CC-CC with a logical link control (LLC) code of Subnetwork Access Protocol (SNAP) (AAAA) and a type of 2003 (in the SNAP header).
+
+	* Summary advertisements
+	* Subset advertisement
+	* Advertisement requests
+
+#################################
+* Summary advertisements
+#################################
+By default, Catalyst switches issue summary advertisements in 5-minute increments. Summary advertisements inform adjacent Catalysts of the current VTP domain name and the configuration revision number.
+When the switch receives a summary advertisement packet, the switch compares the VTP domain name to its own VTP domain name. If the name is different, the switch simply ignores the packet. If the name is the same, the switch then compares the configuration revision to its own revision. If its own configuration revision is higher or equal, the packet is ignored. If it is lower, an advertisement request is sent.
+
+#################################
+* Subset advertisement
+#################################
+When you add, delete, or change a VLAN in a Catalyst, the server Catalyst where the changes are made increments the configuration revision and issues a summary advertisement. One or several subset advertisements follow the summary advertisement. A subset advertisement contains a list of VLAN information. If there are several VLANs, more than one subset advertisement can be required in order to advertise all the VLANs.
+
+#################################
+* Advertisement requests
+#################################
+A switch needs a VTP advertisement request in these situations:
+	& The switch has been reset.
+	& The VTP domain name has been changed.
+	& The switch has received a VTP summary advertisement with a higher configuration revision than its own.
+Upon receipt of an advertisement request, a VTP device sends a summary advertisement. One or more subset advertisements follow the summary advertisement.
+
+#####################################
+VTP Pruning
+#####################################
+VTP ensures that all switches in the VTP domain are aware of all VLANs. However, there are occasions when VTP can create unnecessary traffic. All unknown unicasts and broadcasts in a VLAN are flooded over the entire VLAN. All switches in the network receive all broadcasts, even in situations in which few users are connected in that VLAN. VTP pruning is a feature that you use in order to eliminate or prune this unnecessary traffic.
+
+	Switch(config)# [no] vtp pruning # enable pruning
+	Switch(config-if)#switchport trunk pruning vlan {add|remove|expect|none} vlan-id
+	Switch#show vtp status
 
 #####################################
 vtp configuration

@@ -1,0 +1,34 @@
+################################
+static routing
+################################
+connected subnet has been learnt automatically with the 'C' pointer (directly connected).
+in the static routing, all the records should be add to the routers routing table manually and will be shown with the 'S' pointer (static).
+	
+	router(config)#ip route <network id> <mask> <out-interface> | <next-hop-ip-address>
+	router#show ip route
+
+NOTE: if a static route fails, it will remove from the routing table.
+
+Default route:
+	router(config)#ip route 0.0.0.0 0.0.0.0 <out-interface> | <next-hop-ip-address>
+
+NOTE:if a destination ip address in a packet matches with more that a record in the routing table, it will be forwarded through the router witch has the higher mask number or more specific subnet mask.
+
+################################
+manual summarization
+################################
+problems: suboptimal routing
+	* packets will route to destinations that not exists instead of being discard.
+	* packets with unknown destination will lead to default route.
+
+solution:Null 0
+	* in the router which we have manually summarized routes, we add a static route for the exact manually summarized network to Null 0.
+	
+################################
+dynamic routing
+################################
+1- dynamically update routing tabes.
+2- dynamically best path election.
+3- dynamically route elimination in case of failing a path.
+4- adding another path (if exists) incase of failing a route.
+

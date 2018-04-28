@@ -1,0 +1,238 @@
+################################
+spanning tree protocol
+################################
+redundant links may be a very good idea.but they may have lots of troubles too:
+$ switching loop
+$ broadcast storm
+$ multiple frames copies
+
+why dont we have routing loops in other words, why is redundant links allowed between routers?
+
+################################
+standard stp
+################################
+IEEE 802.1D
+& stp is a layer 2 protocol for a loop free network.
+& avoiding switching loops by disabling redundant links.
+& by this we may have link redundancy in ethernet networks.
+
+################################
+how stp works
+################################
+% one switch becomes the center point. 
+% that switch starts to meet other switches following the link.
+% each link that switch has not passed to reach other switches are not necessary and should be killed.
+
+NOTE: stp is enable and active by default.
+NOTE: stp does not concern trunk or access links.
+NOTE: central point is important because it is the concentration of traffic.
+
+when you turn a switch on every port on that switch becomes blocked.unless:
+	1-designated ports on the root bridge: one switch becomes root bridge and all of its ports enables forwarding.
+	2-root ports on the other switches: each switch has a port that is the nearest port to the root bridge.we call that port, root port and it is enable and forward
+	3-designated ports on the other switches: on each segment (collision domain), there is a switch near to the root bridge, we call that switch "Designated bridge" the port on regarding to the designated bridge is the designated port on that segment.
+
+################################
+root bridge selection
+################################
+every switch (with stp enable on it) pretend to be root bridge as soon as it turns on.
+in oder to prove that claim, it Multicast Bridge Protocol Data Units (BPDU) packets.this packets send every 2sec.
+there are two kinds of BPDU:
+	# Hello BPDU
+	# TCN
+claimant switch send Hello BPDUs and put its name in the Root Bridge Field.
+so every switch in that network introduce it self as the root bridges and contnu making & sending BPDUs until it receive a better BPDU.
+then it stop making its own BPDU and just forwards the better BPDU.
+as there is only one best BPDU in the network, after a while all the switches make an agreement about the root bridge.
+
+better BPDU is a BPDU with the LOWER Root Bridge (bridg ID)
+in oher words:
+a switch with a lower priority will be the root bridge if priorites are th same , a switch with lower MAC address will be the root bridge.
+
+for select a switch for root bridge you must consider 2 parameter:
+	1- lower bridge id
+	2- path cost
+
+################################
+bridge ID
+################################
+every switch in stp has a bridge ID.
+
+bridge id:
+	stp priority:switch MAC address 
+EXAMPLE:	
+	(32768:2234.f21c.2154.0017)
+
+NOTE: by default the priority is 32768
+
+BPDU main fields:
+	@ root bridge (bridge id)
+	@ sender bridge (bridge id)
+	@ cost to reach root bridge
+
+################################
+path cost
+################################
+each switch edit the sender and cost field befor forwarding the root bridges BPDU.
+it adds the cost of the receiving link to the cost field.
+
+		#############################	
+		# Data rate # STP IEEE cost #
+		#############################
+		# 4 Mbps    # 250	    #
+		# 10 Mbps   # 100	    #
+		# 16 Mbps   # 62	    #
+		# 100 Mbps  # 19 	    #
+		# 1 Gbps    # 4	 	    #
+		# 2 Gbps    # 3		    #
+		# 10Gbps    # 2		    #
+		#############################
+
+################################
+Root port
+################################
+switch may receive BPDU on more than its one ports. 
+root port is the port that has received the lowest cost BPDU to the root bridge in each switch.
+
+################################
+Designated port
+################################
+on each segment on the network rhe switch that sends the BPDU with the lower cost is the Designated bridge.
+so Designated port is the port that sends the lowest cost BPDU to the root bridge in eachsegment.
+
+NOTE:if the cost of two switch to root bridge is the same, for select the designated port you must:
+	1- lower sender bridge ID
+	2- lower port ID
+
+################################
+configuration
+################################
+Root Bridge election
+	sw(config)#spanning-tree vlan 1 priority 4096   #lower than 32768 and multiple of 4096	
+or	
+	sw(config)#no spanning-tree vlan 1 priority 4096
+	sw(config)#spanning-tree vlan 1 root priority	#32768-(2*4096)= 24576 priprity
+	sw#show spanning-tree
+	sw(config)#spanning-tree vlan 1 root secondry   #32768-4096= 28672 priprity
+
+################################
+stp durations
+################################
+Hello time:
+	root bridge generate BPDU and advertises it.(2sec)
+
+Max age:
+	if a switch does not reveive expected BPDU or receives a worse BPDU, it consider a change in the network and react.
+	(10 times of the hello time= 20 sec)
+
+Forward delay:
+	when the switch becomes confident that a change has occurred, it converges with the new situation.
+	some block ports may become forwarding but there are some levels.
+		block -> listening -> learning -> forwarding
+		     (forward delay) (forward delay)
+			(15 sec)	(15 sec)
+
+################################
+network topology change
+################################
+	@ link election
+	@ root bridge climination
+	@ link addition
+	@ root bridge addition
+
+1- direct topology change:
+	switch does not wait for the max age.it just 2 forward delays (30 sec).
+2- indirect topology change:
+	switch does not receive BPDU expect or worse BPDU is being received.switch wait for the max age.
+		max age (20 sec) + 2 forward delays (30 sec) = 50 sec
+3- insignificant topology change:
+	each pc in a networks can change a switch port to up and down by getting turned on or off.so switche may think of a direct topology change.
+	but we know this change may not caus loops. so there is no need for the switch to do anything.
+	
+by enabling PORT FAST on accesss ports we tell the switch:
+	$do not generate TCN when an access port goes up and down.
+	$do not go to convergance process (30 sec) when an access port goes up and down and immediately turn a block port into a forwarding port.
+
+port fast configuration:
+	sw(config-if)#spanning-tree port-fast
+
+so what happen if you accidentally attach a switch to a port fast enabled port? it can cause loops !!!
+
+################################
+BPDU guard
+################################
+by this feature we tell the switch that if you receive BPDUs on an access link with port-fast enabled, it means that this port is attached to a switch.
+this port goes to "error-disabled" mode and shuts down.
+        sw(config-if)#spanning-tree bpdu-guard enable
+
+so on all access ports we will do:
+        sw(config-if)#spanning-tree port-fast
+        sw(config-if)#spanning-tree bpdu-guard enable
+
+################################
+stp convergence
+################################
+stp port roles:
+	* root port
+	* designated port
+	* blocked port
+
+stp port states
+	* blocking
+	* listening
+	* learning
+	* forwarding
+	* disable
+
+		###########################################################################################
+		#            # proccess BPDU # send BPDU # proccess frame # send frame # update mac table #
+		###########################################################################################
+		# Bloking    #	   yes	     #    no     #       no       #     no     #        no        #
+		# listening  #     yes       #    yes    #       no       #     no     #        no        #
+		# learning   #     yes       #    yes    #       yes      #     no     #        yes       #
+		# forwarding #     yes       #    yes    #       yes      #     yes    #        yes       #
+		# disable    #     no        #    no     #       no       #     no     #        no        #
+		###########################################################################################
+ 
+####################################
+TCN (topology change notification)
+####################################
+when a port gets up or down, switch sends a TCN BPDU on its root port.
+next switch (which has received that TCN) again forwards that TCN on its root port, until it reach the root bridge.
+then root bridge generate a Hello BPDU (with the TCN flag sets to 1) and sends it to all the switches.
+so every one has noticed the change in the topology.
+in this time every switch that has received this configuration BPDU reduce its MAC table age time from 5 min to 15 sec.
+it means in this switch will eliminate a record in the MAC table if it doesnt get any update in 15 sec.
+if it updates it change the age time back to 5 min.
+
+################################
+different types of stp
+################################
+1- stp traditional (IEEE 802.D)
+problems:
+	$ long convergence time
+	$ its not possible to use all the links.
+solution:
+	1- cisco PVST (per vlan stp)
+		* its possible to use all the links.
+		* some thing like load balancing.
+		* problem: it just work with ISL (not IEEE.1Q)
+		* problem: its not compatible with IEEE 802.D
+	
+	2- cisco PVST+
+		* it has resolved PVST problems.
+		* all the cisco switches uses this version by default.
+		* problem: long convergence time
+	
+	3- IEEE 802.1W (RSTP)
+		* to reduce convergence time.
+	
+	4- cisco RPVST+
+		* load balancing and convergence time reduction.
+		* problem: there will be a fresh instance of stp for each vlan (low performance)
+	
+	5- IEEE 802.1S (MST)
+		* multiple stp
+		* using just one instance of stp (higher performance)
+		* using RSTP (convergence time reduction)
+		* manual management

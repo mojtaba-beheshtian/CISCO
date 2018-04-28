@@ -24,7 +24,7 @@ or
 #################################
 secure all passwords
 #################################
-	router(conf)#dervice password-encryption
+	router(conf)#service password-encryption
 
 #################################
 enable telnet
@@ -32,10 +32,16 @@ enable telnet
         router(conf)#line vty 0 15
         router(conf-line)#password test
         router(conf-line)#login
+	router(config-line)#logging synchronous #stops any message output from splitting your typing
+	router(config-line)#exec-timeout 40     #just sets the time-out limit on the line from the default to “40″ minutes.
+	router(config-line)#motd-banner 	#forces a banner message to appear when logging in.
 or
         router(conf)#username ali password ali
         router(conf)#line vty 0 15
         router(conf-line)#login local
+        router(config-line)#logging synchronous #stops any message output from splitting your typing
+        router(config-line)#exec-timeout 40     #just sets the time-out limit on the line from the default to “40″ minutes.
+        router(config-line)#motd-banner         #forces a banner message to appear when logging in.
 
 and 
         router(conf)#enable password ali
@@ -63,7 +69,21 @@ and
 	router(config)#hostname mojtaba
 	router(conf)#ip domain-name mojtaba.com
 	router(config)#crypto key generate rsa(generate public key)
+
+################################
+disable telnet or ssh
+################################
+	router(conf-line)#no transport input ssh (or all)
+or
+	router(conf-line)#transport input none
 	
+################################
+show terminal logs
+################################
+Debug and system error messages for the current terminal and session.
+	
+	router#terminal monitor
+	router#terminal no monitor
 
 ################################
 RAM

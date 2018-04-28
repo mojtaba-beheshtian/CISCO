@@ -1,12 +1,18 @@
 #####################################
 dynamic trunking protocol
 #####################################
-interfaces modes:
+DTP is used to automatically setup a trunk between switches.The DTP helps to automatically negotiate whether the port should be put into access or trunk mode and what trunking protocol (802.1Q or ISL) should be used.
 
-1.Access Mode: DTP disable and the port is an access
-2.Trunk mode: port os a trunk but DTP is enable and propose to the other side.
-3.Dynamic Auto mode: wait for the proposal, DTP is enable.
-4.Dynamic Desirable mode: propose to the other side, if the other side is not an access, it will accept getting trunk, DTP is enable.
+Administrative modes:
+
+	1.Access Mode: DTP disable and the port is an access
+	2.Trunk mode: port is a trunk but DTP is enable and propose to the other side.
+	3.Dynamic Auto mode: wait for the proposal, DTP is enable.
+	4.Dynamic Desirable mode: propose to the other side to set trunk , if the other side is not an access, it will accept getting trunk, DTP is enable.
+
+Operational modes:
+	1.Access
+	2.Trunk
 
 DTP ports negotiate with the other side of the link:
 1.to deside making the port a trunk or an access.
@@ -24,6 +30,8 @@ DTP ports negotiate with the other side of the link:
                 #dynamic desirable#  access   #     trunk      #   trunk      #      trunk        #
                 ###################################################################################
 
+NOTE: DTP frames send every 30sec.
+
 #####################################
 DTP configuration
 #####################################
@@ -31,6 +39,7 @@ DTP configuration
 	sw#show interface fastethernet 0/0 switchport
 	sw#show interface fastethernet 0/0 trunk
 	sw#show intwrfaces trunk
+	sw#show dtp
 
 Disable DTP:
 	sw(conf-if)#switchport mode trunk

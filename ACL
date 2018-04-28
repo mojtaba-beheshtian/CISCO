@@ -61,7 +61,7 @@ How to write a standard access list?
 	route(conf)#Access-list <number> {permit|deny} <source-ip> <wild-mask>
 	
 EXAMPLE:
-	Access-list 101 remark "accessto servers
+	Access-list 1 remark "accessto servers
 	Access-list 1 permit 192.168.1.1 0.0.0.0
 	Access-list 1 deny 192.168.1.0 0.0.0.15
 	Access-list 1 deny 0.0.0.0 255.255.255.255 (no need)
@@ -91,7 +91,7 @@ NOTE: source IP and destination IP is mandatory,if you are not interested use th
 		##########################################################################
 
 	Router(conf)#Access-list <number> {permit|deny} {IP|ICMP} <source-ip> <wild-mask> <destination-ip> <wild-mask>
-	Router(conf)#Access-list <number> {permit|deny} {TCP|UDP} <source-ip> <wild-mask> operators <source-port> <destination        -ip> <wild-mask> operators <destination-port>
+	Router(conf)#Access-list <number> {permit|deny} {TCP|UDP} <source-ip> <wild-mask> operators <source-port> <destination-ip> <wild-mask> operators <destination-port>
 	
 Operators:
  #Eq	Eq 80=web
@@ -109,6 +109,7 @@ EXAMPLE
 	Access-list 101 permit TCP host 192.168.1.1 any eq 110
 
 NOTE: if you want to assign an access list to switch you must assign this access list to a interface vlan
+
 ##########################
 ACL Monitoring
 ##########################

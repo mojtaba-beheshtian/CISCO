@@ -1,0 +1,79 @@
+#####################################
+NAT (network address translation)
+#####################################
+1- public ip addresses: 
+	can be routed in the internet
+2- private ip addresses:
+	can not be routed in the internet
+
+problem:
+private ip addresses may not access the internet.
+nat is the technology of changing the source ip address.
+
+solution:
+source ip will be translated to public.
+
+& inside local: name of the inside source address befor translation.
+& outside local: name of the destination host befor translation.
+& inside global: name of inside host after translation.
+& outside global: name of the outside destination host after translation.
+
+################################
+NAT types
+################################
+1- static nat: for every private ip you must have a public ip
+	* static nat implementation
+	
+		% step1: inside & outside interfaces selection
+			router(config)#interface fastethernet 0/0
+			router(config-if)#ip nat inside
+			router(config)#interface serial 0
+			router(config-if)#ip nat outside
+	
+		% step2: nat table initiation
+			router(config)#ip nat inside source static <inside-local> <inside-global>
+
+2- dynamic nat
+        * dynamic nat implementation
+        
+	        % step1: inside & outside interfaces selection
+                        router(config)#interface fastethernet 0/0
+                        router(config-if)#ip nat inside
+                        router(config)#interface serial 0
+                        router(config-if)#ip nat outside
+        
+	        % step2:internal users with standard ACL
+			router(config)#access-list 1 permit 192.168.1.0 0.0.0.255
+
+		% step3: outside address pool
+			router(config)#ip nat pool test 80.80.80.1 80.80.80.10 netmask 255.255.255.240
+
+		% step4: nat table initiation
+			router(config)#ip nat inside source list 1 pool test
+
+		% step5: idle timeout (default 5 min)
+			router(config)#ip nat translation time-out 300
+
+3- pat (port address translation = masquerading)
+        * pat implementation
+
+                % step1: inside & outside interfaces selection
+                        router(config)#interface fastethernet 0/0
+                        router(config-if)#ip nat inside
+                        router(config)#interface serial 0
+                        router(config-if)#ip nat outside
+
+                % step2:internal users with standard ACL
+			router(config)#access-list 1 permit 192.168.1.0 0.0.0.255
+
+		% step2:internal users with standard ACL
+                        router(config)#access-list 1 permit 192.168.1.0 0.0.0.255
+
+                % step3: outside address pool
+                        router(config)#ip nat pool test 80.80.80.1 80.80.80.10 netmask 255.255.255.240
+
+                % step4: nat table initiation:a translate inside addresses to an outside interface
+			router(config)#ip nat inside source list 1 interface serial 0/0 overload
+
+
+

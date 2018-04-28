@@ -1,0 +1,94 @@
+################################
+eigrp neighborship
+################################
+each router first get to know its neighbor routers and keeps the information of them in the EIGRP neighbor table.
+
+purpose:
+	* to make sure that neighbor routers are alive.
+	* eigrp parameters compatibility check in two neighbor routers.
+
+hello packet:
+	in lan priodically in hello times 5 sec and dead time 15sec.
+
+eigrp parameters that should be match:
+	& authentication key
+	& AS number
+	&  source ip address of the hello packet must be the same as the interface subnet that hello packet has received:
+		% 10.1.1.1/30 and 10.1.1.2/24 does not make adjutancy in ospf.
+		% 10.1.1.1/30 and 10.1.1.2/24 make adjutancy in eigrp.
+
+NOTE: destination ip address of the hello packets are 224.0.0.10
+
+###################################
+eigrp topology database exchange
+###################################
+1- neighbor discovery with hello packets
+2- full routing update
+3- hello packets continues
+4- partial updates (if any changes occursor a new route adds)
+
+NOTE: routers advertise the whole routing table (just like distance vector) just one time.
+
+################################
+eigrp bulding routing table
+################################
+the shortest path will be placed into the routing table.
+shortest path will be determined based on metric.
+
+$ feasible distance (FD): best route metric
+$ reported distance (RD): best path metric, reported by the neighbor.
+$ soccessor : best route.
+$ feasible soccessor: backup route in case the successor fails.
+
+NOTE: if the AD of the backup router is lower than FD of the soccessor than backup route is a feasible successor.
+NOTE: in some cases this formula is not true but the route is a feasible successor.
+NOTE: it means if the formula is truethen the route is a feasible successor.
+NOTE: but if the formula does not apply, the route may be a feasible soccessor.
+
+################################
+metric
+################################
+$ MTU
+$ load
+$ reliability
+$ bandwith
+$ delay
+
+first 3 parameters factor are 0, so only bandwidth and delay will count.
+
+metric= [(10^7/the lowest link bandwidth in kbps) + total link delay in 10 micro sec] * 256
+
+################################
+eigrp configuration
+################################
+	r1(config)#router eigrp <AS number>
+	r1(config-router)#network <ip-address> <wild-card>
+	r1(conig-router)#no suto-summary
+	r1(config)#interface serial 0/0
+	r1(config-if)#bandwidth <bandwidth>
+	r1(config-if)#delay <delay>
+
+	r1#show ip eigrp neighbor
+	r1#show ip eigrp topology
+	r1#show ip protocol
+
+network command enables th interface to:
+	* send hello packets on that interface.
+	* receives hello packets and updates on that interface.
+	* advertises its subnet.
+
+#####################################
+eigrp unequal paths load balancing
+#####################################
+variance:
+1<k<255
+
+metric router1=m1
+metric router2=m2
+
+consider m1 < m2
+if m2<= k*m1 then router1 = router2
+
+	r1(config)#router eigrp <ASN>
+	r1(config-router)#variance <k>
+	r1(config-router)#max-path <max-path>

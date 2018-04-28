@@ -1,0 +1,47 @@
+############################################
+link aggregation (ether channel protocol)
+############################################
+some physical links (up to 8 links) act as a logical link to increase bandwidth.
+aggregated links should be exactly the same. (speed,duplex,access or trunk,vlan number,native vlan,no span,...)
+
+################################
+ether channel protocol
+################################
+1- PAGP (port aggregation protocol): 
+	* just for cisco devices
+	* you can aggregate up to 8 links
+
+2- LACP (linl aggregation control protocol) IEEE 802.1AD
+	* you can aggregate up to 16 links but only 8 links is active simultaneously.
+
+NOTE: it is possible to aggregate between two router? no because load balancing is allowed.
+
+################################
+PAGP & LACP modes
+################################
+$ on			######################################
+$ desirable		#	    # on  # desirable # auto #
+$ auto			######################################
+			# on	    # yes #    no     # no   #
+			# desirable # no  #    yes    # yes  #
+			# auto	    # no  #    yes    # no   #
+			######################################
+
+################################
+configuration
+################################
+	sw1(config)#interface range fastethernet 0/15-16
+	sw1(config-if)#channel-porotocol {pagp|lacp}
+	sw1(config-if)#channel-group 1 mode {on|desirable|auto}
+	
+	sw2(config)#interface range fastethernet 0/17-18
+	sw2(config)#channel-porotocol {pagp|lacp}
+        sw2(config-if)#channel-group 1 mode {on|desirable|auto}
+	sw2(config)#interface port-channel 1 
+
+	sw1#show etherchannel 1 summery
+	sw1#show etherchannel 1 details
+	sw1#show interface status
+	sw1#show spanning-tree
+	sw1#show mac-address-table
+

@@ -1,27 +1,112 @@
 #################################
 vlan
 #################################
-$switches breaks callision domains up while routers breaks broudcast domains up
-$switches do not break broadcast domains by default
-$each vlan is a single broadcast domain
-$vlan is a logical way of grouping clients and resources connected to a switch ports. 
-$its a way of breaking a large broadcast domain up in a layer 2 switching network.
+$ switches breaks callision domains up while routers breaks broudcast domains up
+$ switches do not break broadcast domains by default
+$ each vlan is a single broadcast domain
+$ vlan is a logical way of grouping clients and resources connected to a switch ports. 
+$ its a way of breaking a large broadcast domain up in a layer 2 switching network.
 $ 1 vlan= 1 virtual switch= 1 switch with its own mac table= 1 broadcast domain
-$we may have 4096 vlans
+$ we may have 4096 vlans
 	1-1005 (normal vlan)
 	1005-4096 (extended vlan)
+
+NOTE: vlans 1002 to 1005 were reserved for FDDI and Token Ring and you cant delete.
 
 what we are going to do is:
 1.make diffrent vlans in all switches
 2.each ports vlan membership
 
-NOTE: vlan1=administrative vlan
+NOTE: vlan1 = native vlan = administrative vlan
 
-	sw(conf)#vlan2
-	sw(conf-vlan)#name vlan002
-	sw(conf)#interface fastethernet 0/10
-	sw(conf-if)#switchport mode access
-	sw(conf-if)#switchport access vlan 2
-	sw#show vlan brief
-	sh#show mac-address-table vlan 2
+        sw(conf)#vlan2
+        sw(conf-vlan)#name vlan002
+        sw(conf)#interface fastethernet 0/10
+        sw(conf-if)#switchport mode access
+        sw(conf-if)#switchport access vlan 2
+        sw#show vlan brief
+        sh#show mac-address-table vlan 2	
+
+#########################################
+VMPS(vlan membership policy server)
+#########################################
+Dynamic VLAN Assignments
+
+The VLAN QueryProtocol (VQP UDP 1589 port) is used to support dynamic-access ports, which are not permanently assigned to a VLAN, but give VLAN assignments based on the MAC source addresses seen on the port. Each time an unknown MAC address is seen, the switch sends a VQP query to a remote VLAN Membership Policy Server (VMPS); the query includes the newly seen MAC address and the port on which it was seen. The VMPS responds with a VLAN assignment for the port. The switch cannot be a VMPS server but can act as a client to the VMPS and communicate with it through VQP.
+Each time the client switch receives the MAC address of a new host, it sends a VQP query to the VMPS.
+When the VMPS receives this query, it searches its database for a MAC-address-to-VLAN mapping. The server response is based on this mapping and whether or not the server is in open or secure mode. In secure mode, the server shuts down the port when an illegal host is detected. In open mode, the server denies the host access to the port.
+
+#################################
+How to Configure VMPS
+#################################
+	Switch(config)# vmps server 10.1.2.3 primary # Enters the IP address of the switch acting as the primary VMPS server.
+	Switch(config)# vmps server 10.3.4.5 	     # (Optional) Enters the IP address of the switch acting as a secondary VMPS server
+	Switch# show vmps
+
+####################################################
+Configuring Dynamic-Access Ports on VMPS Clients
+####################################################
+	Switch(config)# interface gigabitethernet 1/0/1
+	Switch(config-if)# switchport mode access
+	Switch(config-if)# switchport access vlan dynamic
+
+
+#################################
+Native vlan
+#################################
+A native vlan is the untagged vlan on an 802.1q trunked switchport.  The native vlan and management vlan could be the same, but it is better security practice that they aren't.  Basically if a switch receives untagged frames on a trunkport, they are assumed to be part of the vlan that are designated on the switchport as the native vlan.  Frames egressing a switchport on the native vlan are not tagged.
+
+	sw(config-if)#switchport trunk native vlan vlan-id
+
+NOTE: you can set tag for native vlan
+	
+	sw(config)#vlan dot1q tag native
+
+NOTE: What is difference between Default VLAN and Native VLAN?
+
+Cisco switches always have VLAN 1 as the default VLAN, which is needed for many protocol communication between switches like spanning-tree protocol for instance.
+You can't change or even delete the default VLAN, it is mandatory.
+The native VLAN is the only VLAN which is not tagged in a trunk, in other words, native VLAN frames are transmitted unchanged.
+
+#################################
+vlan hopping attack
+#################################
+VLAN hopping is a computer security exploit, a method of attacking networked resources on a virtual LAN (VLAN). The basic concept behind all VLAN hopping attacks is for an attacking host on a VLAN to gain access to traffic on other VLANs that would normally not be accessible. 
+There are two primary methods of VLAN hopping:
+	1- switch spoofing
+	2- double tagging
+ Both attack vectors can be mitigated with proper switch port configuration.
+
+#################################
+1- Switch spoofing
+#################################
+In a switch spoofing attack, an attacking host imitates a trunking switch by speaking the tagging and trunking protocols (e.g. Multiple VLAN Registration Protocol, IEEE 802.1Q, Dynamic Trunking Protocol) used in maintaining a VLAN. Traffic for multiple VLANs is then accessible to the attacking host.
+
+Switch spoofing can only be exploited when interfaces are set to negotiate a trunk. To prevent this attack on Cisco IOS, use one of the following methods:
+
+	1. Ensure that ports are not set to negotiate trunks automatically by disabling DTP:
+		Switch(config-if)# switchport nonegotiate
+
+	2. Ensure that ports that are not meant to be trunks are explicitly configured as access ports
+		Switch(config-if)# switchport mode access
+
+#################################
+2- Double tagging
+#################################
+In a double tagging attack, an attacking host connected on a 802.1Q trunked interface prepends two VLAN tags to packets that it transmits. The packet (which corresponds to the VLAN that the attacker is really a member of) is forwarded without the first tag, because it is the native VLAN. The second (false) tag is then visible to the second switch that the packet encounters. This false VLAN tag indicates that the packet is destined for a target host on a second switch. The packet is then sent to the target host as though it originated on the target VLAN bypassing the network mechanisms that logically isolate VLANs from one another. However, possible replies are not forwarded to the attacking host.
+
+Double Tagging can only be exploited on switch ports configured to use native VLANs. Trunk ports configured with a native VLAN dont apply a VLAN tag when sending these frames. This allows an attacker's fake VLAN tag to be read by the next switch.
+
+Double Tagging can be mitigated by any of the following actions (Incl. IOS example):
+
+	* Simply do not put any hosts on VLAN 1 (The default VLAN). i.e., assign an access VLAN other than VLAN 1 to every access port
+		 Switch(config-if)# switchport access vlan 2
+
+	* Change the native VLAN on all trunk ports to an unused VLAN ID.
+		Switch(config-if)# switchport trunk native vlan 999
+
+	* Explicit tagging of the native VLAN on all trunk ports. Must be configured on all switches in network autonomy.
+		Switch(config)# vlan dot1q tag native
+
+
 
